@@ -5,6 +5,8 @@ const nodemailer = require('nodemailer');
 require('dotenv').config()
 import {Center} from "./Center";
 
+const player = require('play-sound')();
+
 const {user, pass, clientId, clientSecret, refreshToken} = process.env;
 
 let transporter = nodemailer.createTransport({
@@ -69,9 +71,16 @@ const statistics = (center: Center[], dates: string[]) => {
     })
 }
 
+const playSound = () => {
+    const audio = player.play('./media/build.mp3');
+    setTimeout(() => {
+        audio.kill()
+    }, 20000);
+}
+
 const checkVaccineAvailability = ({name, vaccines, address, pin, fee_type}: Center, index: number): boolean => {
     vaccines.forEach(({vaccine: vaccine_name, available_capacity, min_age_limit, date}) => {
-        if (available_capacity > 0) {
+        if (available_capacity > 3) {
             let mailOptions = {
                 from: 'muralimanohar707@gmail.com',
                 to: 'muralimanohar707@gmail.com',
@@ -88,13 +97,7 @@ const checkVaccineAvailability = ({name, vaccines, address, pin, fee_type}: Cent
                 PIN CODE: ${(pin)},
                 FEE TYPE: ${(fee_type)},`
             };
-            transporter.sendMail(mailOptions, function (err: any) {
-                if (err) {
-                    console.error(chalk.red.bold("Error while sending email"));
-                } else {
-                    log(chalk.blue("Email sent successfully"));
-                }
-            });
+            transporter.sendMail(mailOptions);
             log(`
             ${chalk.cyan.bold(`${index + 1}) ${name}`)},
             ${chalk.blue.bold(`ALERT: VACCINE AVAILABLE`)} 
@@ -105,6 +108,7 @@ const checkVaccineAvailability = ({name, vaccines, address, pin, fee_type}: Cent
             ADDRESS: ${blue_bold(address)},
             PIN CODE: ${blue_bold(pin)},
             FEE TYPE: ${blue_bold(fee_type)}`);
+            playSound();
             return true;
         }
     })
