@@ -39,6 +39,21 @@ exports.__esModule = true;
 var axios = require('axios');
 var chalk = require('chalk');
 var moment = require('moment');
+var nodemailer = require('nodemailer');
+require('dotenv').config();
+var _a = process.env, user = _a.user, pass = _a.pass, clientId = _a.clientId, clientSecret = _a.clientSecret, refreshToken = _a.refreshToken;
+console.log(user, pass, clientId, clientSecret, refreshToken);
+var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        type: 'OAuth2',
+        user: process.env.user,
+        pass: process.env.pass,
+        clientId: process.env.clientId,
+        clientSecret: process.env.clientSecret,
+        refreshToken: process.env.refreshToken
+    }
+});
 var log = console.log;
 var blue_bold = chalk.blue.bold;
 var headers = {
@@ -53,7 +68,7 @@ setInterval(function () {
                     now = moment();
                     today = now.format('DD-MM-YYYY');
                     tomorrow = now.add(1, 'days').format('DD-MM-YYYY');
-                    API = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id=597&date=" + today;
+                    API = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id=596&date=" + today;
                     log(chalk.white.bold("CHECKING FOR VACCINES: ") + " " + chalk.white("" + today));
                     return [4 /*yield*/, axios.get(API, { headers: headers })];
                 case 1:
@@ -84,7 +99,7 @@ setInterval(function () {
             }
         });
     });
-}, 5000);
+}, 1000 * 60 * 10);
 var statistics = function (center, dates) {
     dates.forEach(function (date) {
         var centersForToday = center.map(function (a) {
@@ -103,6 +118,20 @@ var checkVaccineAvailability = function (_a, index) {
     vaccines.forEach(function (_a) {
         var vaccine_name = _a.vaccine, available_capacity = _a.available_capacity, min_age_limit = _a.min_age_limit, date = _a.date;
         if (available_capacity > 0) {
+            var mailOptions = {
+                from: 'muralimanohar707@gmail.com',
+                to: 'muralimanohar707@gmail.com',
+                subject: "ALERT: VACCINE AVAILABLE AT " + name + ", " + pin,
+                text: "\n                ALERT: VACCINE AVAILABLE \n                " + name + "\n                VACCINE NAME: " + vaccine_name + "\n                DATE: " + (date) + "\n                AGE LIMIT: " + (min_age_limit) + ",\n                ADDRESS: " + (address) + ",\n                PIN CODE: " + (pin) + ",\n                FEE TYPE: " + (fee_type) + ",\n                "
+            };
+            transporter.sendMail(mailOptions, function (err) {
+                if (err) {
+                    console.error(chalk.red.bold("Error while sending email"));
+                }
+                else {
+                    log(chalk.blue("Email sent successfully"));
+                }
+            });
             log("\n            " + chalk.cyan.bold(index + 1 + ") " + name) + ",\n            " + chalk.blue.bold("ALERT: VACCINE AVAILABLE") + " \n            VACCINE NAME: " + blue_bold(vaccine_name) + ",\n            DATE: " + blue_bold(date) + "\n            AGE LIMIT: " + blue_bold(min_age_limit) + ",\n            ADDRESS: " + blue_bold(address) + ",\n            PIN CODE: " + blue_bold(pin) + ",\n            FEE TYPE: " + blue_bold(fee_type));
             return true;
         }

@@ -1,7 +1,23 @@
 const axios = require('axios');
 const chalk = require('chalk');
 const moment = require('moment');
+const nodemailer = require('nodemailer');
+require('dotenv').config()
 import {Center} from "./Center";
+
+const {user, pass, clientId, clientSecret, refreshToken} = process.env;
+
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        type: 'OAuth2',
+        user,
+        pass,
+        clientId,
+        clientSecret,
+        refreshToken
+    }
+});
 
 
 const log = console.log;
@@ -56,6 +72,27 @@ const statistics = (center: Center[], dates: string[]) => {
 const checkVaccineAvailability = ({name, vaccines, address, pin, fee_type}: Center, index: number): boolean => {
     vaccines.forEach(({vaccine: vaccine_name, available_capacity, min_age_limit, date}) => {
         if (available_capacity > 0) {
+            let mailOptions = {
+                from: 'muralimanohar707@gmail.com',
+                to: 'muralimanohar707@gmail.com',
+                subject: `ALERT: VACCINE AVAILABLE AT ${name}, ${pin}`,
+                text: `
+                ALERT: VACCINE AVAILABLE 
+                ${name}
+                VACCINE NAME: ${vaccine_name}
+                DATE: ${(date)}
+                AGE LIMIT: ${(min_age_limit)},
+                ADDRESS: ${(address)},
+                PIN CODE: ${(pin)},
+                FEE TYPE: ${(fee_type)},`
+            };
+            transporter.sendMail(mailOptions, function (err: any) {
+                if (err) {
+                    console.error(chalk.red.bold("Error while sending email"));
+                } else {
+                    log(chalk.blue("Email sent successfully"));
+                }
+            });
             log(`
             ${chalk.cyan.bold(`${index + 1}) ${name}`)},
             ${chalk.blue.bold(`ALERT: VACCINE AVAILABLE`)} 
