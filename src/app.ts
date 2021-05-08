@@ -53,7 +53,7 @@ setInterval(async function () {
     } finally {
         log(`\n`);
     }
-}, 1000 * 60 * 10);
+}, 1000 * 60); //every 3 minutes
 
 const statistics = (center: Center[], dates: string[]) => {
     dates.forEach(date => {
@@ -78,9 +78,11 @@ const checkVaccineAvailability = ({name, vaccines, address, pin, fee_type}: Cent
                 subject: `ALERT: VACCINE AVAILABLE AT ${name}, ${pin}`,
                 text: `
                 ALERT: VACCINE AVAILABLE 
-                ${name}
-                VACCINE NAME: ${vaccine_name}
-                DATE: ${(date)}
+                CENTER NAME: ${name},
+                TIME OF AVAILABILITY: ${moment().format('LLL')}
+                VACCINE NAME: ${vaccine_name},
+                DATE: ${(date)},
+                AVAILABLE CAPACITY: ${available_capacity},
                 AGE LIMIT: ${(min_age_limit)},
                 ADDRESS: ${(address)},
                 PIN CODE: ${(pin)},
@@ -97,7 +99,8 @@ const checkVaccineAvailability = ({name, vaccines, address, pin, fee_type}: Cent
             ${chalk.cyan.bold(`${index + 1}) ${name}`)},
             ${chalk.blue.bold(`ALERT: VACCINE AVAILABLE`)} 
             VACCINE NAME: ${blue_bold(vaccine_name)},
-            DATE: ${blue_bold(date)}
+            DATE: ${blue_bold(date)},
+            AVAILABLE CAPACITY: ${available_capacity},
             AGE LIMIT: ${blue_bold(min_age_limit)},
             ADDRESS: ${blue_bold(address)},
             PIN CODE: ${blue_bold(pin)},
